@@ -17,24 +17,43 @@ let notes = [
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql `
 type Note {
-    id: ID!
-    content: String!
-    author: String!
+        id: ID!
+        content: String!
+        author: String!
     }
 
 type Query {
-        hello: String!
+        hello: String
         notes: [Note!]!
-        }
+        note(id: ID!): Note!
+    }
+type Mutation {
+        newNote(content: String!): Note!
+    }        
 `;
 
 // Provide resolver functions for our schema fields
 const resolvers = {
     Query: {
         hello: () => 'Hello world!',
-        notes: () => notes
+        notes: () => notes,
+        note: (parent, args) => {
+            return notes.find(note => note.id === args.id);
         }
-    };
+    },
+
+    Mutation: {
+        newNote:(parent,args) => {
+            let noteValue = {
+                id: String(notes.length + 1),
+                content: args.content,
+                author : "Чижык Пыжик"
+            };
+            notes.push(noteValue);
+            return noteValue;
+        }
+    }
+};
 
 // Apollo Server setup
 const server = new ApolloServer({ typeDefs, resolvers });
