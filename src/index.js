@@ -25,6 +25,7 @@ type Note {
 type Query {
         hello: String!
         notes: [Note!]!
+        note(id : ID!) : Note !
         }
 `;
 
@@ -32,7 +33,10 @@ type Query {
 const resolvers = {
     Query: {
         hello: () => 'Hello world!',
-        notes: () => notes
+        notes: () => notes,
+        note : (parent,args)=>{
+            return notes.find(note => note.id == args.id)
+            }
         }
     };
 
