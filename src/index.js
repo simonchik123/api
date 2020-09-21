@@ -2,9 +2,20 @@
 // This is the main entry point of our application
 
 const express = require('express');
-const app = express();
-const port = process.env.PORT || 4000;
 const {ApolloServer, gql} = require('apollo-server-express');
+
+const Models = require('./models');
+
+// import our .env configuration
+require('dotenv').config();
+
+// import db - mongoose
+const db = require('./db');
+
+// Run the server on a port specified in our .env file or port 4000
+const port = process.env.PORT || 4000;
+// Store the DB_HOST value as a variable
+const DB_HOST = process.env.DB_HOST;
 
 
 
@@ -36,30 +47,33 @@ type Mutation {
 const resolvers = {
     Query: {
         hello: () => 'Hello world!',
-        notes: () => notes,
+        notes: async () => {
+            return await Models.Note.find();
+        },
         note: (parent, args) => {
             return notes.find(note => note.id === args.id);
         }
     },
 
     Mutation: {
-        newNote:(parent,args) => {
-            let noteValue = {
-                id: String(notes.length + 1),
-                content: args.content,
-                author : "Чижык Пыжик"
-            };
-            notes.push(noteValue);
-            return noteValue;
+        newNote:async(parent,args) => {
+            return await Models.Note.create({
+                content : args.content,
+                author: 'simonchik'
+            });
         }
     }
 };
+
+
+const app = express();
+
+// Connect to the database
+db.connect(DB_HOST);
 
 // Apollo Server setup
 const server = new ApolloServer({ typeDefs, resolvers });
 
 // Apply the Apollo GraphQL middleware and set the path to /api
 server.applyMiddleware({ app, path: '/api' });
-
-app.get('/', (req, res) => res.send('Hello World!!! HI'));
 app.listen({port}, () => console.log(`GraphQL Server running at http://localhost:${port}${server.graphqlPath}`));
