@@ -5,12 +5,7 @@ module.exports = {
             author: 'simonchik'
         });
     },
-    updateNote: async (parent, {
-        content,
-        id
-    }, {
-        Models
-    }) => {
+    updateNote: async (parent, {content,id}, {Models}) => {
         return await Models.Note.findOneAndUpdate({
             _id: id,
         }, {
@@ -21,11 +16,7 @@ module.exports = {
             new: true
         });
     },
-    deleteNote: async (parent, {
-        id
-    }, {
-        Models
-    }) => {
+    deleteNote: async (parent, {id}, {Models}) => {
         try {
             await Models.Note.findOneAndRemove({
                 _id: id
