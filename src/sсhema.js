@@ -2,6 +2,8 @@ const { gql } = require('apollo-server-express');
 
 // Construct a schema, using GraphQL schema language
 
+/* createdAt: DateTime!
+    updatedAt: DateTime! */
 module.exports = gql `
 
 scalar DateTime
@@ -9,9 +11,7 @@ scalar DateTime
 type Note {
         id: ID!
         content: String!
-        author: String!
-        createdAt: DateTime!
-        updatedAt: DateTime!
+        author: String!        
     }
 
 type Query {
