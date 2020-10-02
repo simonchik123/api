@@ -3,6 +3,8 @@ const { ApolloServer } = require('apollo-server-express');
 // import our .env configuration
 require('dotenv').config();
 
+// import jwt module (token)
+const jwt = require('jsonwebtoken');
 
 // ===================================
 // Импорт локальных модулей
@@ -35,12 +37,30 @@ const server = new ApolloServer({
     typeDefs,
     resolvers,
     // Add the db models to the context
-    context: () => {
-        return {
-            Models
-        };
+    context: ({ req }) => {
+        // get the user token from the headers
+        const token = req.headers.authorization;
+        // try to retrieve a user with the token
+        const user = getUser(token);
+        // for now, let's log the user to the console:
+        console.log(user);
+        // add the db models and the user to the context
+        return { Models, user };
     }
 });
+
+// get the user info from a JWT
+const getUser = token => {
+    if (token) {
+        try {
+            // return the user information from the token
+            return jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            // if there's a problem with the token, throw an error
+            throw new Error('Session invalid');
+        }
+    }
+};
 
 // Apply the Apollo GraphQL middleware and set the path to /api
 server.applyMiddleware({app,path: '/api'});
