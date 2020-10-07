@@ -3,18 +3,35 @@ const jwt = require('jsonwebtoken');
 const {AuthenticationError,ForbiddenError} = require('apollo-server-express');
 require('dotenv').config();
 const gravatar = require('../util/gravatar');
+const mongoose = require('mongoose');
 
 
 
 
 module.exports = {
-    newNote: async (parent, args,{Models}) => {
+    newNote: async (parent, args,{Models,user}) => {
+
+        if(!user) {
+            throw AuthenticationError(" Вы должны войти в систему, чтоб создать запись!");
+        }
         return await Models.Note.create({
             content: args.content,
-            author: 'simonchik'
+            author: mongoose.Types.ObjectId(user.id)
         });
     },
-    updateNote: async (parent, {content,id}, {Models}) => {
+    updateNote: async (parent, {content,id}, {Models, user}) => {
+
+        if(!user) {
+            throw AuthenticationError(" Вы должны войти в систему, чтоб обновить запись!");
+        }
+        // find a note
+        const note = await Models.Note.FindById(id);
+        // если владелец заметки и текущий пользователь не совпадают, выдать запрещенную ошибку
+        if (note && String(note.author) !== user.id) {
+            throw new ForbiddenError("У вас нет прав на изменение этой записи");
+        }
+
+        
         return await Models.Note.findOneAndUpdate({
             _id: id,
         }, {
@@ -25,11 +42,25 @@ module.exports = {
             new: true
         });
     },
-    deleteNote: async (parent, {id}, {Models}) => {
+    deleteNote: async (parent, {id}, {Models,user}) => {
+
+        if(!user) {
+            throw AuthenticationError(" Вы должны войти в систему, чтоб удалить запись!");
+        }
+
+        // find a note
+        const note = await Models.Note.FindById(id);
+        // если владелец заметки и текущий пользователь не совпадают, выдать запрещенную ошибку
+        if (note && String(note.author) !== user.id) {
+            throw new ForbiddenError("У вас нет прав на удаление этой записи");
+        }
         try {
-            await Models.Note.findOneAndRemove({
+            // если пользователь владелец, то можем удалить
+
+            await note.remove();
+            /* await Models.Note.findOneAndRemove({
                 _id: id
-            });
+            }); */
             return true;
         } catch (err) {
             return false;

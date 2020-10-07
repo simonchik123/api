@@ -26,6 +26,9 @@ type Query {
         hello: String
         notes: [Note!]!
         note(id: ID!): Note!
+        user(username: String!): User
+        users: [User!]!
+        me: User!
     }
 type Mutation {
         newNote(content: String!): Note!
@@ -33,5 +36,5 @@ type Mutation {
         deleteNote(id: ID!): Boolean!
         signUp(username: String!, email: String!, password: String!): String!
         signIn(username: String, email: String, password: String!): String!
-    }        
+    }      
 `;
