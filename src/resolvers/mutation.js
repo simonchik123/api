@@ -112,5 +112,42 @@ module.exports = {
             return jwt.sign({
                 id: user._id
             }, process.env.JWT_SECRET);
+        },
+    toggleFavorite: async (parent, { id }, { Models, user }) => {
+            // if no user context is passed, throw auth error
+            if (!user) {
+            throw new AuthenticationError();
+            }
+            // check to see if the user has already favorited the note
+            let noteCheck = await Models.Note.findById(id);
+            const hasUser = noteCheck.favoritedBy.indexOf(user.id);
+            
+            // если пользователь есть в списке желаемых, тогда удаляем его, и -1 в счетчик
+            if (hasUser >= 0){
+                return await Models.Note.findByIdAndUpdate(
+                    id,
+                    {
+                        $pull:{favoritedBy:mongoose.Types.ObjectId(user.id)},
+                        $inc:{favoriteCount:-1}
+                    },
+                    {
+                        // возвращает обновленный документ
+                        new:true
+                    }
+                );
+            } else {
+                // если пользователя нет в списке желаемых, тогда добавляем его, и +1 в счетчик
+                return await Models.Note.findByIdAndUpdate(
+                    id,
+                    {
+                        $push:{favoritedBy:mongoose.Types.ObjectId(user.id)},
+                        $inc:{favoriteCount:1}
+                    },
+                    {
+                        // возвращает обновленный документ
+                        new:true
+                    }
+                );
+            }
         }
 };
