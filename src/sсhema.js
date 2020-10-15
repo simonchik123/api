@@ -2,17 +2,17 @@ const { gql } = require('apollo-server-express');
 
 // Construct a schema, using GraphQL schema language
 
-/* 
-    scalar DateTime
 
-    createdAt: DateTime!
-    updatedAt: DateTime! */
 module.exports = gql `
+
+scalar DateTime
 
 type Note {
         id: ID!
         content: String!
         author: User!
+        createdAt: DateTime!
+        updatedAt: DateTime!
         favoriteCount: Int!
         favoritedBy: [User!]    
     }
@@ -24,6 +24,11 @@ type User {
         notes: [Note!]!
         favorites: [Note!]!
     }
+type NoteFeed {
+    notes: [Note]!
+    cursor: String!
+    hasNextPage: Boolean!
+}    
 
 type Query {
         hello: String
@@ -31,7 +36,11 @@ type Query {
         note(id: ID!): Note!
         user(username: String!): User
         users: [User!]!
-        me: User!
+        me: User!  
+
+        # добавить заметку к существующим запросам
+        noteFeed(cursor: String): NoteFeed
+        
     }
 type Mutation {
         newNote(content: String!): Note!
