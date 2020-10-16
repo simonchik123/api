@@ -2,7 +2,7 @@ const Models = require("../models");
 
 module.exports = {
     notes: async (parent, args,{Models}) => {
-        return await Models.Note.find();
+        return await Models.Note.find().limit(100);
     },
     note: async (parent, args,{Models}) => {
         return await Models.Note.findById(args.id);            
@@ -20,30 +20,30 @@ module.exports = {
         return await Models.User.findById(user.id);
     },
     noteFeed: async (parent, { cursor }, { Models }) => {
-        // hardcode the limit to 10 items
+        // Ограничим кол-во запрашиваемых элементов
         const limit = 10;
-        // set the default hasNextPage value to false
+        // знчение по дефолту для след страницы
         let hasNextPage = false;
-        // if no cursor is passed the default query will be empty
-        // this will pull the newest notes from the db
+        // если курсор не передан, запрос по умолчанию будет пуст,
+        // это приведет к извлечению всех заметок из базы данных
         let cursorQuery = {};
-        // if there is a cursor
-        // our query will look for notes with an ObjectId less than that of the cursor
+        // если есть курсор
+        // наш запрос ищет статьи с ObjectId меньше чем курсор (ID статьи)
         if (cursor) {
         cursorQuery = { _id: { $lt: cursor } };
         }
-        // find the limit + 1 of notes in our db, sorted newest to oldest
+        // найдем limit + 1 сатей в БД, отсортируем от новых к старым
         let notes = await Models.Note.find(cursorQuery).sort({ _id: -1 }).limit(limit + 1);
 
-        // if the number of notes we find exceeds our limit
-        // set hasNextPage to true and trim the notes to the limit
+        // если колво статей превышает лимит
+        // установим hasNextPage to true и откинем статьи согласно limit
         if (notes.length > limit) {
             hasNextPage = true;
             notes = notes.slice(0, -1);
         }
-        // the new cursor will be the Mongo object ID of the last item in the feed array
+        // новый курсор стал ID одной из старых сатей вконце массива
         const newCursor = notes[notes.length - 1]._id;
-            return {
+        return {
                 notes,
                 cursor: newCursor,
                 hasNextPage

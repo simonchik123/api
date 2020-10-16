@@ -5,6 +5,8 @@ require('dotenv').config();
 
 // import jwt module (token)
 const jwt = require('jsonwebtoken');
+const depthLimit = require('graphql-depth-limit');
+const { createComplexityLimitRule } = require('graphql-validation-complexity');
 
 // ===================================
 // Импорт локальных модулей
@@ -36,12 +38,13 @@ db.connect(DB_HOST);
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    validationRules: [depthLimit(5), createComplexityLimitRule(1000)],
     // Add the db models to the context
-    context: ({ req }) => {
+    context: async ({ req }) => {
         // get the user token from the headers
         const token = req.headers.authorization;
         // try to retrieve a user with the token
-        const user = getUser(token);
+        const user = await getUser(token);
         // for now, let's log the user to the console:
         console.log(user);
         // add the db models and the user to the context
