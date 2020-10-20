@@ -25,7 +25,7 @@ module.exports = {
             throw AuthenticationError(" Вы должны войти в систему, чтоб обновить запись!");
         }
         // find a note
-        const note = await Models.Note.FindById(id);
+        const note = await Models.Note.findById(id);
         // если владелец заметки и текущий пользователь не совпадают, выдать запрещенную ошибку
         if (note && String(note.author) !== user.id) {
             throw new ForbiddenError("У вас нет прав на изменение этой записи");
